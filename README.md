@@ -352,5 +352,6 @@ printList preds;
 Not bad! 
 
 For some added coolness, I've visualized the learned function. To do this, I extracted the weights and recreated the neural network in Python so that I can make plots using matplotlib.
+
 ![image](https://github.com/chrispyroberts/NN-Library-in-SML/assets/98184754/496b2b23-7a6d-4277-8f5b-5180359249c0)
 
