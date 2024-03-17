@@ -313,12 +313,46 @@ fun train(model, data, target, numEpochs, lr) =
 Let's train our model!
 ```SML
 val model = mkMLP(3, [4, 4, 1])
-val epochs = 50
-val lr = 0.01
+val epochs = 20
+val lr = 0.1
 
 (* train the model! *)
 val (preds, stats) = train(model, xs, ys, epochs, lr)
+
+(* check the stats! *)
+printUnitList stats;
+- Epoch: 0 Loss: 5.53779043694
+- Epoch: 1 Loss: 2.5662239155
+- Epoch: 2 Loss: 1.0424614968
+- Epoch: 3 Loss: 0.533124310564
+- Epoch: 4 Loss: 0.320296023453
+- Epoch: 5 Loss: 0.228279552335
+- Epoch: 6 Loss: 0.174914994336
+- Epoch: 7 Loss: 0.140645510365
+- Epoch: 8 Loss: 0.117043592376
+- Epoch: 9 Loss: 0.0999162783072
+- Epoch: 10 Loss: 0.0869784648891
+- Epoch: 11 Loss: 0.0768915433684
+- Epoch: 12 Loss: 0.0688246009194
+- Epoch: 13 Loss: 0.062236955874
+- Epoch: 14 Loss: 0.0567627859125
+- Epoch: 15 Loss: 0.0521463424593
+- Epoch: 16 Loss: 0.0482037874752
+- Epoch: 17 Loss: 0.0447997771296
+- Epoch: 18 Loss: 0.0418325806194
+- Epoch: 19 Loss: 0.039224330192
+
+printList (toList ys);
+- 1.0 ~1.0 ~1.0 1.0
+
+printList preds;
+0.927186722116 ~0.87375668138 ~0.932934293398 0.883864853478
 ```
+
+Not bad!
+
+
+
 
 
 
