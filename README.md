@@ -58,7 +58,7 @@ printData(res);
 ```
 
 
-Now we are ready to define a layer of neurons. The following is a schematic for an MLP. Each layer has a number of neurons that aren't connected to each other, but fully connected to the inputs. So a layer is a set of neurons evaluated independently. 
+Now we are ready to define a layer of neurons. The following is a schematic for an Multi-layer perceptron (MLP). Each layer has a number of neurons that aren't connected to each other, but fully connected to the inputs. So a layer is a set of neurons evaluated independently. 
 ![image](https://github.com/chrispyroberts/NN-Library-in-SML/assets/98184754/c3e52b5b-84dd-42ef-8195-7a8752b7e994)
 [_source_](https://www.google.com/url?sa=i&url=https%3A%2F%2Fcs231n.github.io%2Fconvolutional-networks%2F&psig=AOvVaw1B_BaKk6xSWUrVt1jqfSak&ust=1710720817969000&source=images&cd=vfe&opi=89978449&ved=0CBMQjRxqFwoTCJCKueqB-oQDFQAAAAAdAAAAABAD)
 
@@ -99,7 +99,7 @@ List.map printData res;
 
 We can see that we have 3 independent neurons.
 
-Finally let's complete the picture and define a Multi-layer perceptron (MLP). In an MLP, the layers just feed into each other sequentially. 
+Finally let's complete the picture and define a MLP. In an MLP, the layers just feed into each other sequentially. 
 
 So an MLP is similar, we take a number of inputs, but instead of a single nOut, we take a list of nOuts, which defines the sizes of all the layers in the MLP. We put them all together, then iterate over all consecutive pairs of sizes, then in the forward pass, we just call them sequentially.
 
