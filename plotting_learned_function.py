@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 # Assuming the weights are ordered such that each neuron's weights come sequentially,
 # and the last weight for each neuron is the bias for that neuron.
 # The given network has 3 input neurons, 4 neurons in each hidden layer, and 1 output neuron.
+# Same network used in the example_usage.sml file
 
 # Given weights and biases (assuming the last in each segment is a bias)
 params = [
