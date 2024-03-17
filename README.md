@@ -48,7 +48,7 @@ fun forwardNeuron (Neuron(neurons, weight), x) : value =
 fun getNeuronParams(Neuron(neurons, weight)) = neurons @ [weight]
 ```
 Now everytime we make a new neuron, it will be created with random start weights, allowing us to forward a single neuron!
-```
+```SML
 val x = toValues [2.0, 3.0]
 val n = mkNeuron(2)
 val res = forwardNeuron(n, x)
