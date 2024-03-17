@@ -242,7 +242,7 @@ fun updateParams(p : value list, stepSize : real) : unit =
 val () = updateParams(params, stepSize)
 ```
 
-Now let's take a look at the neuron we saw before, the weights are very slightly shifted!
+Sick! Now let's take a look at the neuron we saw before, the weights are very slightly shifted!
 ```SML
 List.map printData (w @ [b]);
 
@@ -310,7 +310,7 @@ fun train(model, data, target, numEpochs, lr) =
   end
 ```
 
-Let's train our model!
+Annnnnnnd we're done! Let's train our model!
 ```SML
 val model = mkMLP(3, [4, 4, 1])
 val epochs = 20
