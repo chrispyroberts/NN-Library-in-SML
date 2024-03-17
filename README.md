@@ -138,6 +138,7 @@ Let's now recreate the actual picture. So we want 3 input neurons, 2 hidden laye
 val x = toValues [2.0, 3.0, ~1.0]
 val n = mkMLP(3, [4, 4, 1]) 
 val [res] = forwardMLP(n, x)
+
 printData res;
 - Data: 0.611611026853 Gradient: 0.0
 ```
@@ -154,7 +155,7 @@ val xs = List.map toValues [[2.0, 3.0, ~1.0],
                             [0.5, 1.0, 1.0],
                             [1.0, 1.0, ~1.0]]
 
-val ys = [1.0, ~1.0, ~1.0, 1.0] (* desired targets *) 
+val ys = toValues [1.0, ~1.0, ~1.0, 1.0] (* desired targets *) 
 ```
 Since our outputs are ```~1.0``` and ```1.0```, this is a simple binary classifier neural network that we'd like to build.
 
@@ -163,7 +164,8 @@ Let's see what our neural network thinks of this data right now.
 ```SML
 (* the result of mapping forwardMLP is a list of singleton value lists since our output dimension is 1 so we extract the value *)
 val y_pred : value list = List.map (fn [x] => x) (List.map (fn x => forwardMLP(n, x)) xs)
-List.map printData y_pred
+
+List.map printData y_pred;
 - Data: 0.611611026853 Gradient: 0.0
 - Data: 0.459266801113 Gradient: 0.0
 - Data: 0.797254447499 Gradient: 0.0
@@ -176,11 +178,27 @@ $$\text{MSE} = \frac{1}{n} \sum_{i=1}^{n} (y_i - \hat{y}_i)^2$$
 
 ```SML
 (* Our MSE loss is defined for neural networks with a single output node *)
-(* loss : value list -> value *)
+(* loss : value list * value list -> value *)
 fun loss ([], []) = mkDefaultValue(0, 0)
   | loss (pred::xs, y::ys) = add(mul(add(pred, y), add(pred, y)), loss(xs, y))
 ```
+Let's check what the loss of each prediction is.
 
+```sml
+val individual_l = List.map (fn (x, y) => loss([x], [y])) (zip(y_pred, ys))
 
+List.map printData individual_l;
+- Data: 2.59729010187 Gradient: 0.0
+- Data: 0.292392392379 Gradient: 0.0
+- Data: 0.0411057590588 Gradient: 0.0
+- Data: 3.36571127926 Gradient: 0.0
+```
 
+Now of the whole network
+```
+val l = loss(y_pred, ys)
+
+printData l;
+- Data: 6.29649953257 Gradient: 0.0
+```
 
