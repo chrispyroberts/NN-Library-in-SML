@@ -163,7 +163,7 @@ Let's see what our neural network thinks of this data right now.
 
 ```SML
 (* the result of mapping forwardMLP is a list of singleton value lists since our output dimension is 1 so we extract the value *)
-val y_pred : value list = List.map (fn [x] => x) (List.map (fn x => forwardMLP(n, x)) xs)
+val y_pred = flatten (List.map (fn x => forwardMLP(n, x)) xs)
 
 List.map printData y_pred;
 - Data: 0.611611026853 Gradient: 0.0
@@ -180,10 +180,11 @@ $$\text{MSE} = \frac{1}{n} \sum_{i=1}^{n} (y_i - \hat{y}_i)^2$$
 (* Our MSE loss is defined for neural networks with a single output node *)
 (* loss : value list * value list -> value *)
 fun loss ([], []) = mkDefaultValue(0, 0)
-  | loss (pred::xs, y::ys) = add(mul(add(pred, y), add(pred, y)), loss(xs, y))
+  | loss (pred::xs, y::ys) = add(mul(subtract(pred, y), subtract(pred, y)), loss(xs, y))
 ```
-Let's check what the loss of each prediction is.
+We'll only get 0.0 for our loss when our prediction is exactly the target. The more 'off' we are, the greater the loss. We want to minimize this loss.
 
+Let's check what the loss of each prediction from the network is.
 ```sml
 val individual_l = List.map (fn (x, y) => loss([x], [y])) (zip(y_pred, ys))
 
@@ -193,12 +194,131 @@ List.map printData individual_l;
 - Data: 0.0411057590588 Gradient: 0.0
 - Data: 3.36571127926 Gradient: 0.0
 ```
+What this tells us is that the second and third values are closer to their targets than the first and fourth values. 
 
 Now of the whole network
-```
+```SML
 val l = loss(y_pred, ys)
 
 printData l;
 - Data: 6.29649953257 Gradient: 0.0
 ```
+
+Once again, the greater the loss, the worse the network is. So we want to minimize our loss, because then predictions will be closer to their targets. So if we call the following, something magical will happen.
+```SML
+val () = backwards(l)
+
+(* lets look at a neuron in the MLP *)
+val MLP((Layer((Neuron(w,b))::ms))::ls) = n
+
+List.map printData (w @ [b]);
+- Data: 0.775246182111 Gradient: 1.89611750398E~07
+- Data: 0.986559390969 Gradient: ~6.19510736208E~08
+- Data: ~0.363518157284 Gradient: 3.05058707024E~08
+- Data: ~0.406099914641 Gradient: ~0.000281717871018
+```
+The magical thing that happens is that we can look at the gradient of each neuron's weights and bias w.r.t the loss! For the first weight of the first neuron of the first layer is negative, means that it's influence on the loss is also negative, so slightly increasing this particular weight of this neuron of this layer would **make the loss go down**, and we have this information for every weight of every neuron in the MLP.
+
+It's worth looking at the computational graph of the loss, since we did the forward pass for every example and then calculated the squared error for each one and then summed these. So this will be a truly massive graph. 
+
+![image](https://github.com/chrispyroberts/NN-Library-in-SML/assets/98184754/b780d41f-5263-41e8-a431-22ec1c6b2171)
+
+This loss backpropogates through all the forward passes, every-single intermediate value of the neural network, all the way backwards to the weight parameters of the neural networks. 
+
+Let's collect all the parameters of the neural network in a list (we already wrote these!), then change each parameter w.r.t the gradient information. This is gradient descent (GD). We think of the gradient as a vector that points in the direction of increased loss, so we want to nudge the parameters in the direction opposite the gradient as to decrease loss.
+
+```SML
+val stepSize = 0.01 (* otherwise known as the learning rate *)
+val params = getMLPParams n
+
+(* update each paramater *)
+fun updateParams(p : value list, stepSize : real) : unit = 
+  let
+    fun update(n : value) : unit = (getData n := !(getData n) - stepSize * !(getGrad n))
+  in
+    List.foldl (fn (n, ()) => update(n)) () p
+  end
+
+val () = updateParams(params, stepSize)
+```
+
+Now let's take a look at the neuron we saw before, the weights are very slightly shifted!
+```SML
+List.map printData (w @ [b]);
+
+Data: 0.775246180215 Gradient: 1.89611750398E~07
+Data: 0.986559391589 Gradient: ~6.19510736208E~08
+Data: ~0.363518157589 Gradient: 3.05058707024E~08
+Data: ~0.406097097463 Gradient: ~0.000281717871018
+```
+
+We can also look at the new loss.
+
+```SML
+(* recalculate y_pred *)
+val y_pred = List.map (fn [x] => x) (List.map (fn x => forwardMLP(n, x)) xs)
+
+val l = loss(y_pred, ys)
+
+printData l;
+- Data: 6.10896212056 Gradient: 0.0 (* Old loss: 6.29649953257 *)
+```
+
+Our model has improved slightly! Now all we have to do is iterate this process.
+
+```SML
+fun train(model, data, target, numEpochs, lr) =
+  let
+    (* Just defining a few helpers *)
+    fun flatten l = foldl op@ [] l
+    
+    val parameters = getMLPParams(model)
+    fun resetGradients () = foldl (fn (n, ()) => ((getGrad n) := 0.0)) () parameters
+    
+    fun updateParams() : unit = 
+      let
+        fun update(n : value) : unit = (getData n := !(getData n) - lr * !(getGrad n))
+      in
+        List.foldl (fn (n, ()) => update(n)) () parameters
+      end
+
+    (* Real meat of the training process happens in here *)
+    fun trainHelp(model, 0, currEpoch, final_prediction, epochStatList) = (toList final_prediction, epochStatList)
+      | trainHelp(model, n, currEpoch, _, epochStatList) =
+      let
+        val y_pred = flatten (List.map (fn x => forwardMLP(model, x)) data)
+        val l = loss(y_pred, target)
+        
+        (* reset gradients of all parameters to 0 before calling backwards pass*)
+        val () = resetGradients ()
+        
+        (* update gradients *)
+        val () = backwards(l) 
+
+        (* update params *)
+        val () = updateParams ()
+
+        (* Save stats *)
+        val stats = (fn () => print("Epoch: " ^ Int.toString currEpoch ^ 
+                                   " Loss: " ^ (Real.toString (!(getData l))) 
+                                   ^ "\n"))
+      in
+        trainHelp(model, n-1, currEpoch+1, y_pred, stats :: epochStatList)
+      end
+  in
+    trainHelp(model, numEpochs, 0, [], [])
+  end
+```
+
+Let's train our model!
+```SML
+val model = mkMLP(3, [4, 4, 1])
+val epochs = 50
+val lr = 0.01
+
+(* train the model! *)
+val (preds, stats) = train(model, xs, ys, epochs, lr)
+```
+
+
 
