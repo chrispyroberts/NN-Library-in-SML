@@ -1,5 +1,3 @@
-# Building a Neural Net Library (Multi-Layer Perceptron) in SML (A Functional Programming Language)
-
 This project will heavily rely on the ```value``` datatype and an automatic differentiation algorithnm that I implemented in [this repo](https://github.com/chrispyroberts/Auto-Diff-in-SML). If you are not familiar with backpropogation, or don't understand how automatic differentiation works, I recommend you read through the linked repo before continuing.
 
 With that being said, we start by defining a new datatype, the ```neuron``` and a function to create a neuron. We take in some ```n```, which represents the number of inputs to this neuron, 
